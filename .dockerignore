@@ -1,0 +1,35 @@
+# Runtime files (not needed in container) ????? for compose mount? will this affect it?
+app/runtime/env/*.yaml
+
+# Git and version control
+.git
+.gitignore
+
+# Dart build artifacts
+app/.dart_tool
+app/build
+
+# Logs
+*.log
+
+# IDE and editor files
+.vscode
+.idea
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Infrastructure files (not needed in app container)
+infrastructure/
+
+# Documentation and project files
+README.md
+taskfile.yaml
+remote_structure
+
+# Docker files (avoid recursive copying)
+Dockerfile
+.dockerignore

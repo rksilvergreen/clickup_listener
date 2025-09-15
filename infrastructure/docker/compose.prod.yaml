@@ -1,0 +1,20 @@
+services:
+  app-prod:
+    build:
+      context: ../../
+      dockerfile: infrastructure/docker/Dockerfile
+    image: rksilvergreen/clickup-listener:latest
+    environment:
+      - PORT=8080
+      - CLICKUP_ENV_FILE=/runtime/env/clickup.prod.yaml
+    volumes:
+      - ../../app/runtime/env/clickup.prod.yaml:/runtime/env/clickup.prod.yaml:ro
+    ports:
+      - "8080:8080"
+
+  tunnel-prod:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    env_file:
+      - ../tunnel/tunnel.prod.env

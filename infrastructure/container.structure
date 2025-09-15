@@ -1,0 +1,11 @@
+/
+├── usr/
+│   └── local/
+│       └── bin/
+│           └── clickup_listener   # Compiled Dart binary (from /build/)
+├── runtime/
+│   └── env/
+│       └── clickup.prod.yaml      # Mounted config file
+├── etc/
+│   └── timezone                   # Timezone data
+└── (standard Debian filesystem)

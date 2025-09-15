@@ -1,0 +1,11 @@
+name: clickup_listener
+version: 0.0.1
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+dependencies:
+  shelf: ^1.4.1
+  shelf_router: ^1.1.4
+  http: ^1.2.2
+  yaml: ^3.1.2
+  crypto: ^3.0.3
+  timezone: ^0.9.2

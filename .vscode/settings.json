@@ -1,0 +1,32 @@
+{
+    "material-icon-theme.files.associations": {
+    },
+    "material-icon-theme.folders.associations": {
+        "infrastructure": "config",
+        "tunnel": "cloudflare",
+        "lib/env": ""
+    },
+    "material-icon-theme.folders.customClones": [
+        {
+            "name": "runtime",
+            "base": "ci",
+            "color": "purple-300",
+            "folderNames": [
+                "app/runtime"
+            ],
+            "saturation": 0.5,
+        }
+    ],
+    "material-icon-theme.files.customClones": [
+        {
+            "name": "structure",
+            "base": "contributing",
+            "color": "white",
+            "fileNames": [
+                "container.structure",
+                "remote.structure"
+            ],
+            "saturation": 0.5,
+        }
+    ]
+}

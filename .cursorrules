@@ -1,0 +1,39 @@
+# Cursor Rules for ClickUp Automation Project
+
+## Enum Format Rule
+When creating enums, always follow the format of RelevanceUnit:
+
+```dart
+enum EnumName {
+  VALUE_1,
+  VALUE_2,
+  VALUE_3;
+
+  static final Map<EnumName, String> _map = {
+    EnumName.VALUE_1: 'value_1',
+    EnumName.VALUE_2: 'value_2',
+    EnumName.VALUE_3: 'value_3',
+  };
+
+  static EnumName fromString(String value) {
+    final entry = _map.entries.firstWhere(
+      (entry) => entry.value == value,
+      orElse: () => throw ArgumentError('Invalid enum value: $value'),
+    );
+    return entry.key;
+  }
+
+  String toDisplayString() {
+    return name[0] + name.substring(1).toLowerCase();
+  }
+
+  @override
+  String toString() => _map[this]!;
+}
+```
+
+This format provides:
+- Static `fromString()` method for parsing string values
+- `toDisplayString()` method for user-friendly display
+- `toString()` method for API/technical usage
+- Consistent mapping between enum values and string representations 

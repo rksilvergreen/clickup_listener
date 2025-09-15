@@ -1,0 +1,218 @@
+version: '3'
+
+tasks:
+  app:run:
+    desc: "Run the Dart app on host (usage: task app:run -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            CLICKUP_ENV_FILE=app/runtime/env/clickup.dev.yaml dart run app/lib/main.dart
+            ;;
+          "prod")
+            CLICKUP_ENV_FILE=app/runtime/env/clickup.prod.yaml dart run app/lib/main.dart
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  app:build:
+    desc: "Build the app container (usage: task app:build -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml build app-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml build app-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  app:start:
+    desc: "Start the app container (usage: task app:start -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml up app-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml up app-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  app:stop:
+    desc: "Stop the app container (usage: task app:stop -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml down app-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml down app-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  app:logs:
+    desc: "Show app container logs (usage: task app:logs -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml logs -f --tail=100 app-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml logs -f --tail=100 app-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  tunnel:start:
+    desc: "Open the Cloudflare tunnel using Docker Compose (usage: task tunnel:start -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml up tunnel-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml up tunnel-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+  
+  tunnel:stop:
+    desc: "Stop the Cloudflare tunnel using Docker Compose (usage: task tunnel:stop -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml down tunnel-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml down tunnel-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  tunnel:logs:
+    desc: "Show tunnel container logs (usage: task tunnel:logs -- dev|prod)"
+    silent: true
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml logs -f --tail=100 tunnel-dev
+            ;;
+          "prod")
+            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml logs -f --tail=100 tunnel-prod
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+
+  domain:switch:
+    desc: "Switch {{.HOSTNAME}} to {local|remote}"
+    silent: true
+    dotenv: ['infrastructure/tunnel/cloudflare.env']
+    vars:
+      TARGET:     { sh: 'echo ${TARGET:-local}' }  # usage: task domain:switch TARGET=remote
+      TTL:        "1"                             # 1 = auto (works when proxied)
+      PROXIED:    "true"                          # true/false (boolean in JSON)
+    preconditions:
+      - sh: '[ -n "$HOSTNAME" ] && [ -n "$CF_ZONE_ID" ] && [ -n "$CF_RECORD_ID" ] && [ -n "$CF_API_TOKEN" ] && [ -n "$TUNNEL_PROD_LOCAL" ] && [ -n "$TUNNEL_PROD_REMOTE" ]'
+        msg: "Missing required variables in cloudflare.env file"
+    cmds:
+      - |
+        if [ "{{.TARGET}}" = "local" ]; then
+          curl -sX PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
+            -H "Authorization: Bearer $CF_API_TOKEN" -H "Content-Type: application/json" \
+            --data "{\"type\":\"CNAME\",\"name\":\"$HOSTNAME\",\"content\":\"$TUNNEL_PROD_LOCAL\",\"proxied\":{{.PROXIED}},\"ttl\":{{.TTL}}}"
+        elif [ "{{.TARGET}}" = "remote" ]; then
+          curl -sX PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
+            -H "Authorization: Bearer $CF_API_TOKEN" -H "Content-Type: application/json" \
+            --data "{\"type\":\"CNAME\",\"name\":\"$HOSTNAME\",\"content\":\"$TUNNEL_PROD_REMOTE\",\"proxied\":{{.PROXIED}},\"ttl\":{{.TTL}}}"
+        else
+          echo "Usage: task domain:switch TARGET={local|remote}"; exit 1
+        fi
+
+  webhooks:activate:
+    desc: "Activate ClickUp webhooks for the specified environment (usage: task webhooks:activate -- dev|prod)"
+    silent: true
+    dotenv: ['infrastructure/clickup.env']
+    cmds:
+      - |
+        case "{{.CLI_ARGS}}" in
+          "dev"|"")
+            echo "Activating webhooks for DEV environment..."
+            WEBHOOK_IDS="$WEBHOOK_IDS_DEV"
+            ;;
+          "prod")
+            echo "Activating webhooks for PROD environment..."
+            WEBHOOK_IDS="$WEBHOOK_IDS_PROD"
+            ;;
+          *)
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            exit 1
+            ;;
+        esac
+        
+        # Process webhook IDs - handle both single and comma-separated values
+        if [ -n "$WEBHOOK_IDS" ]; then
+          # Split comma-separated webhook IDs using parameter expansion
+          # Replace commas with spaces for proper word splitting
+          WEBHOOK_IDS_SPACED="${WEBHOOK_IDS//,/ }"
+          
+          for WEBHOOK_ID in $WEBHOOK_IDS_SPACED; do
+            # Simple whitespace removal - remove leading/trailing spaces
+            WEBHOOK_ID="${WEBHOOK_ID# }"
+            WEBHOOK_ID="${WEBHOOK_ID% }"
+            
+            if [ -n "$WEBHOOK_ID" ]; then
+              echo "Activating webhook ID: $WEBHOOK_ID"
+              # Update webhook status to active
+              curl -X PUT "https://api.clickup.com/api/v2/webhook/$WEBHOOK_ID" \
+                -H "Authorization: $API_TOKEN" \
+                -H "Content-Type: application/json" \
+                -d '{"status": "active"}' \
+                -w "\nHTTP Status: %{http_code}\n"
+              echo "---"
+            fi
+          done
+        else
+          echo "No webhook IDs found for environment '{{.CLI_ARGS}}'"
+        fi

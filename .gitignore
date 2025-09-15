@@ -1,0 +1,94 @@
+# Dart specific
+.dart_tool/
+build/
+pubspec.lock
+*.dart.js
+*.js.map
+*.js
+*.dart.js.map
+
+# Environment and configuration files
+*.env
+*.env.local
+*.env.production
+*.env.*
+!*.env.example
+
+# Runtime environment files
+app/runtime/env/*
+!app/runtime/env/*.template.yaml
+!app/runtime/env/*.example.yaml
+
+# Tunnel environment files
+infrastructure/tunnel/*.env
+infrastructure/tunnel/tunnel.*.env
+!infrastructure/tunnel/*.template.env
+!infrastructure/tunnel/*.example.env
+
+# Docker
+docker-compose.override.yml
+.docker/
+
+# IDE files
+#.vscode/
+.idea/
+*.swp
+*.swo
+*.sublime-*
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+logs/
+log/
+
+# Temporary files
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# Coverage reports
+coverage/
+lcov.info
+
+# Test files
+test/.test_coverage.dart
+
+# Dependencies (if any Node.js tools are used)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Backup files
+*.bak
+*.backup
+*~
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity

@@ -1,0 +1,28 @@
+{
+    "autorun": true,
+    "terminals": [
+        {
+            "name": " General"
+        },
+        {
+            "name": " Tunnel (dev)",
+            "icon": "arrow-swap",
+            "color": "terminal.ansiYellow"
+        },
+        {
+            "name": " App (dev)",
+            "icon": "play",
+            "color": "terminal.ansiYellow"
+        },
+        {
+            "name": " Tunnel (prod)",
+            "icon": "arrow-swap",
+            "color": "terminal.ansiGreen"
+        },
+        {
+            "name": " App (prod)",
+            "icon": "play",
+            "color": "terminal.ansiGreen"
+        }
+    ]
+}
