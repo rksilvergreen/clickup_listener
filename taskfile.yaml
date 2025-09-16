@@ -20,22 +20,10 @@ tasks:
         esac
 
   app:build:
-    desc: "Build the app container (usage: task app:build -- dev|prod)"
+    desc: "Build the app image"
     silent: true
     cmds:
-      - |
-        case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml build app-dev
-            ;;
-          "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml build app-prod
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
-            exit 1
-            ;;
-        esac
+      - docker compose -f infrastructure/docker/compose.yaml build app
 
   app:start:
     desc: "Start the app container (usage: task app:start -- dev|prod)"
@@ -44,10 +32,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml up app-dev
+            CLICKUP_ENV_FILE=../../app/runtime/env/clickup.dev.yaml docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml up app
             ;;
           "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml up app-prod
+            CLICKUP_ENV_FILE=../../app/runtime/env/clickup.prod.yaml docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up app
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
@@ -62,10 +50,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml down app-dev
+            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml down app
             ;;
           "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml down app-prod
+            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down app
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
@@ -80,10 +68,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml logs -f --tail=100 app-dev
+            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml logs -f --tail=100 app
             ;;
           "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml logs -f --tail=100 app-prod
+            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 app
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
@@ -98,10 +86,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml up tunnel-dev
+            TUNNEL_ENV_FILE=../tunnel/tunnel.dev.env docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml up tunnel
             ;;
           "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml up tunnel-prod
+            TUNNEL_ENV_FILE=../tunnel/tunnel.prod.env docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up tunnel
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
@@ -116,10 +104,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml down tunnel-dev
+            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml down tunnel
             ;;
           "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml down tunnel-prod
+            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down tunnel
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
@@ -134,10 +122,10 @@ tasks:
       - |
         case "{{.CLI_ARGS}}" in
           "dev"|"")
-            docker compose -p clickup-dev -f infrastructure/docker/compose.dev.yaml logs -f --tail=100 tunnel-dev
+            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
             ;;
           "prod")
-            docker compose -p clickup-prod -f infrastructure/docker/compose.prod.yaml logs -f --tail=100 tunnel-prod
+            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
             ;;
           *)
             echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"

@@ -48,7 +48,6 @@ Map<String, dynamic> _loadConfig(String filePath) {
 
 /// Loads the ClickUp configuration from env/clickup.{dev|prod}.yaml
 void _setClickupEnv() {
-  stdout.writeln("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
   // final envPath = _getEnvFilePath(clickup.envFileName);
   final envMap = _loadConfig(clickup.envFileName);
   clickup.set(envMap);

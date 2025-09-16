@@ -1,9 +1,16 @@
+import 'dart:io';
 import 'package:timezone/data/latest.dart';
 import 'env/env.dart' as env;
 import 'server.dart';
 import 'webhooks.dart';
 
+// -------- Constants --------
+const String VERSION = '0.0.2';
+
 Future<void> main() async {
+  // Print application version
+  stdout.writeln('ClickUp Listener v$VERSION');
+
   // Initialize timezone database
   initializeTimeZones();
 
