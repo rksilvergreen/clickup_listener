@@ -2,133 +2,162 @@ version: '3'
 
 tasks:
   app:run:
-    desc: "Run the Dart app on host (usage: task app:run -- dev|prod)"
+    desc: "Run the Dart app on host (usage: task app:run -- test|prod)"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            CLICKUP_ENV_FILE=app/runtime/env/clickup.dev.yaml dart run app/lib/main.dart
+          "test"|"")
+            CLICKUP_ENV_FILE=app/runtime/env/clickup.test.yaml dart run app/lib/main.dart
             ;;
           "prod")
             CLICKUP_ENV_FILE=app/runtime/env/clickup.prod.yaml dart run app/lib/main.dart
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
 
   app:build:
-    desc: "Build the app image"
+    desc: "Build the app image (usage: task app:build IMAGE_TAG)"
     silent: true
     cmds:
-      - docker compose -f infrastructure/docker/compose.yaml build app
+      - |
+        if [ -z "{{.CLI_ARGS}}" ] || [ "{{.CLI_ARGS}}" = "dev" ]; then
+          IMAGE_TAG=dev docker compose -f infrastructure/docker/compose.yaml build app
+        else
+          ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{.CLI_ARGS}} docker compose -f infrastructure/docker/compose.yaml build app
+        fi
 
   app:start:
-    desc: "Start the app container (usage: task app:start -- dev|prod)"
+    desc: "Start the app container (usage: task app:start -- test|prod [IMAGE_TAG])"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            CLICKUP_ENV_FILE=../../app/runtime/env/clickup.dev.yaml docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml up app
+          "test"|"")
+            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
+              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.test.yaml IMAGE_TAG=dev docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml up app
+            else
+              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.test.yaml ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml up app
+            fi
             ;;
           "prod")
-            CLICKUP_ENV_FILE=../../app/runtime/env/clickup.prod.yaml docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up app
+            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
+              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.prod.yaml IMAGE_TAG=dev docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up app
+            else
+              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.prod.yaml ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up app
+            fi
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
 
   app:stop:
-    desc: "Stop the app container (usage: task app:stop -- dev|prod)"
+    desc: "Stop the app container (usage: task app:stop -- test|prod [IMAGE_TAG])"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml down app
+          "test"|"")
+            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
+              IMAGE_TAG=dev docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml down app
+            else
+              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml down app
+            fi
             ;;
           "prod")
-            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down app
+            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
+              IMAGE_TAG=dev docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down app
+            else
+              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down app
+            fi
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
 
   app:logs:
-    desc: "Show app container logs (usage: task app:logs -- dev|prod)"
+    desc: "Show app container logs (usage: task app:logs -- test|prod [IMAGE_TAG])"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml logs -f --tail=100 app
+          "test"|"")
+            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
+              IMAGE_TAG=dev docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml logs -f --tail=100 app
+            else
+              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml logs -f --tail=100 app
+            fi
             ;;
           "prod")
-            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 app
+            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
+              IMAGE_TAG=dev docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 app
+            else
+              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 app
+            fi
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
 
   tunnel:start:
-    desc: "Open the Cloudflare tunnel using Docker Compose (usage: task tunnel:start -- dev|prod)"
+    desc: "Open the Cloudflare tunnel using Docker Compose (usage: task tunnel:start -- test|prod)"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            TUNNEL_ENV_FILE=../tunnel/tunnel.dev.env docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml up tunnel
+          "test"|"")
+            TUNNEL_ENV_FILE=../tunnel/tunnel.test.env docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml up tunnel
             ;;
           "prod")
             TUNNEL_ENV_FILE=../tunnel/tunnel.prod.env docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up tunnel
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
   
   tunnel:stop:
-    desc: "Stop the Cloudflare tunnel using Docker Compose (usage: task tunnel:stop -- dev|prod)"
+    desc: "Stop the Cloudflare tunnel using Docker Compose (usage: task tunnel:stop -- test|prod)"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml down tunnel
+          "test"|"")
+            docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml down tunnel
             ;;
           "prod")
             docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down tunnel
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
 
   tunnel:logs:
-    desc: "Show tunnel container logs (usage: task tunnel:logs -- dev|prod)"
+    desc: "Show tunnel container logs (usage: task tunnel:logs -- test|prod)"
     silent: true
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            docker compose -p clickup-listener-dev -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
+          "test"|"")
+            docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
             ;;
           "prod")
             docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac
@@ -159,22 +188,22 @@ tasks:
         fi
 
   webhooks:activate:
-    desc: "Activate ClickUp webhooks for the specified environment (usage: task webhooks:activate -- dev|prod)"
+    desc: "Activate ClickUp webhooks for the specified environment (usage: task webhooks:activate -- test|prod)"
     silent: true
     dotenv: ['infrastructure/clickup.env']
     cmds:
       - |
         case "{{.CLI_ARGS}}" in
-          "dev"|"")
-            echo "Activating webhooks for DEV environment..."
-            WEBHOOK_IDS="$WEBHOOK_IDS_DEV"
+          "test"|"")
+            echo "Activating webhooks for TEST environment..."
+            WEBHOOK_IDS="$WEBHOOK_IDS_TEST"
             ;;
           "prod")
             echo "Activating webhooks for PROD environment..."
             WEBHOOK_IDS="$WEBHOOK_IDS_PROD"
             ;;
           *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'dev' or 'prod'"
+            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
             exit 1
             ;;
         esac

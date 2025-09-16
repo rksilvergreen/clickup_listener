@@ -1,5 +1,26 @@
 # Cursor Rules for ClickUp Automation Project
 
+## Git Commit and Push Rule
+When the user asks to "commit changes" or similar, always:
+1. **Create a detailed commit message** that explains:
+   - What changes were made
+   - Why the changes were made
+   - Benefits or improvements achieved
+   - Any breaking changes or important notes
+2. **Automatically push to remote** after committing, unless explicitly told otherwise
+3. **Use conventional commit format** when appropriate (feat:, fix:, refactor:, etc.)
+4. **Include context** about the scope and impact of changes
+
+Example format:
+```
+type: brief description
+
+- Detailed bullet points explaining changes
+- Technical details about implementation
+- Benefits and improvements
+- Any important notes for future developers
+```
+
 ## Enum Format Rule
 When creating enums, always follow the format of RelevanceUnit:
 

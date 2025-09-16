@@ -3,7 +3,7 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/Dockerfile
-    image: rksilvergreen/clickup-listener:latest
+    image: ${ACCOUNT_NAME:+${ACCOUNT_NAME}/}clickup-listener:${IMAGE_TAG:-dev}
     environment:
       - PORT=8080
       - CLICKUP_ENV_FILE=/runtime/env/clickup.yaml
