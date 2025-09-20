@@ -3,18 +3,18 @@ services:
     build:
       context: ../../
       dockerfile: infrastructure/docker/Dockerfile
-    image: ${ACCOUNT_NAME:+${ACCOUNT_NAME}/}clickup-listener:${IMAGE_TAG:-dev}
+    image: ${DOCKER_HUB_USERNAME:+${DOCKER_HUB_USERNAME}/}clickup-listener:${IMAGE_TAG:-dev}
     environment:
       - PORT=8080
       - CLICKUP_ENV_FILE=/runtime/env/clickup.yaml
     volumes:
       - ${CLICKUP_ENV_FILE}:/runtime/env/clickup.yaml:ro
     ports:
-      - "8080:8080"
+      - "${PORT:-8082}:8080"
 
   tunnel:
     image: cloudflare/cloudflared:latest
     restart: unless-stopped
     command: tunnel --no-autoupdate run
-    env_file:
-      - ${TUNNEL_ENV_FILE}
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}

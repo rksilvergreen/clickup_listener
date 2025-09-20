@@ -18,16 +18,19 @@
     # --- runtime stage: tiny image that only runs the binary ---
     FROM debian:bookworm-slim AS runtime
     
-    # Install timezone data and set timezone to Jerusalem
-    RUN apt-get update && apt-get install -y tzdata && rm -rf /var/lib/apt/lists/*
+    # Install timezone data, curl for healthcheck, and set timezone to Jerusalem
+    RUN apt-get update && apt-get install -y tzdata curl && rm -rf /var/lib/apt/lists/*
     ENV TZ=Asia/Jerusalem
     
     # add a non-root user
     RUN useradd -u 10001 -r -s /sbin/nologin appuser
     USER appuser
     
-    # copy just the compiled binary
-    COPY --from=build /build/clickup_listener /usr/local/bin/clickup_listener
+    # copy just the compiled binary and ensure execute permissions
+    COPY --from=build --chown=appuser:appuser /build/clickup_listener /usr/local/bin/clickup_listener
+    USER root
+    RUN chmod +x /usr/local/bin/clickup_listener
+    USER appuser
     
     # sensible defaults; can be overridden by compose
     ENV PORT=8080 \

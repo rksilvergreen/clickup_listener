@@ -5,12 +5,12 @@
             "name": " General"
         },
         {
-            "name": " Tunnel (dev)",
+            "name": " Tunnel (test)",
             "icon": "arrow-swap",
             "color": "terminal.ansiYellow"
         },
         {
-            "name": " App (dev)",
+            "name": " App (test)",
             "icon": "play",
             "color": "terminal.ansiYellow"
         },

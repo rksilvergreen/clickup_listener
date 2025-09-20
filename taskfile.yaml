@@ -1,188 +1,228 @@
 version: '3'
 
+vars:
+  COMPOSE_FILE: "infrastructure/docker/compose.yaml"
+
+env:
+  COMPOSE_PROJECT_NAME: "clickup-listener-{{.MODE}}"
+  IMAGE_TAG: { sh: 'ARG="{{.CLI_ARGS}}"; set -- $ARG; TAG=${2:-dev}; echo "$TAG"' }
+  CLICKUP_ENV_FILE: "../../app/runtime/env/clickup.{{.MODE}}.yaml"
+  PORT: { sh: 'case "{{.MODE}}" in "test") echo "$PORT_TEST";; "prod") echo "$PORT_PROD";; *) echo "8080";; esac' }
+
+dotenv: ['infrastructure/infrastructure.env']
+
 tasks:
+
   app:run:
     desc: "Run the Dart app on host (usage: task app:run -- test|prod)"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
+    env:
+      CLICKUP_ENV_FILE: "app/runtime/env/clickup.{{.MODE}}.yaml"
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            CLICKUP_ENV_FILE=app/runtime/env/clickup.test.yaml dart run app/lib/main.dart
-            ;;
-          "prod")
-            CLICKUP_ENV_FILE=app/runtime/env/clickup.prod.yaml dart run app/lib/main.dart
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+
+        echo "Running app in {{.MODE}} mode..."
+
+        dart run app/lib/main.dart
 
   app:build:
-    desc: "Build the app image (usage: task app:build IMAGE_TAG)"
+    desc: "Build the app image (usage: task app:build -- IMAGE_TAG)"
     silent: true
+    vars:
+      BUILD_MODE: { sh: 'ARG="{{.CLI_ARGS}}"; TAG=${ARG%% *}; if [ -z "$TAG" ] || [ "$TAG" = "dev" ]; then echo "dev"; else echo "prod"; fi' }
+    env:
+      IMAGE_TAG: { sh: 'ARG="{{.CLI_ARGS}}"; TAG=${ARG%% *}; echo ${TAG:-dev}' }
     cmds:
       - |
-        if [ -z "{{.CLI_ARGS}}" ] || [ "{{.CLI_ARGS}}" = "dev" ]; then
-          IMAGE_TAG=dev docker compose -f infrastructure/docker/compose.yaml build app
+        if [ "{{.BUILD_MODE}}" = "dev" ]; then
+          echo "Building development image..."
+          unset DOCKER_HUB_USERNAME
         else
-          ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{.CLI_ARGS}} docker compose -f infrastructure/docker/compose.yaml build app
+          echo "Building production image with tag: $IMAGE_TAG"
         fi
+
+        docker compose -f {{.COMPOSE_FILE}} build app
+
+  app:push:
+    desc: "Push the app image to Docker Hub (usage: task app:push -- IMAGE_TAG)"
+    silent: true
+    vars:
+      IMAGE_TAG: { sh: 'ARG="{{.CLI_ARGS}}"; TAG=${ARG%% *}; if [ -z "$TAG" ]; then echo "Error: IMAGE_TAG is required"; exit 1; fi; echo "$TAG"' }
+    cmds:
+      - |
+        if [ -z "$DOCKER_HUB_USERNAME" ]; then
+          echo "Error: DOCKER_HUB_USERNAME not set"
+          exit 1
+        fi
+        
+        echo "Pushing $DOCKER_HUB_USERNAME/clickup-listener:{{.IMAGE_TAG}} to Docker Hub..."
+        
+        docker push $DOCKER_HUB_USERNAME/clickup-listener:{{.IMAGE_TAG}}
+        
+        echo "Successfully pushed $DOCKER_HUB_USERNAME/clickup-listener:{{.IMAGE_TAG}} to Docker Hub"
+
+  app:pull:
+    desc: "Pull the app image from Docker Hub (usage: task app:pull -- IMAGE_TAG)"
+    silent: true
+    vars:
+      IMAGE_TAG: { sh: 'ARG="{{.CLI_ARGS}}"; TAG=${ARG%% *}; if [ -z "$TAG" ]; then echo "Error: IMAGE_TAG is required"; exit 1; fi; echo "$TAG"' }
+    cmds:
+      - |
+        if [ -z "$DOCKER_HUB_USERNAME" ]; then
+          echo "Error: DOCKER_HUB_USERNAME not set"
+          exit 1
+        fi
+        
+        echo "Pulling $DOCKER_HUB_USERNAME/clickup-listener:{{.IMAGE_TAG}} from Docker Hub..."
+        
+        docker pull $DOCKER_HUB_USERNAME/clickup-listener:{{.IMAGE_TAG}}
+        
+        echo "Successfully pulled $DOCKER_HUB_USERNAME/clickup-listener:{{.IMAGE_TAG}} from Docker Hub"
 
   app:start:
     desc: "Start the app container (usage: task app:start -- test|prod [IMAGE_TAG])"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
-              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.test.yaml IMAGE_TAG=dev docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml up app
-            else
-              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.test.yaml ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml up app
-            fi
-            ;;
-          "prod")
-            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
-              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.prod.yaml IMAGE_TAG=dev docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up app
-            else
-              CLICKUP_ENV_FILE=../../app/runtime/env/clickup.prod.yaml ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up app
-            fi
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        echo "MODE: {{.MODE}}"
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+
+        if [ $IMAGE_TAG = "dev" ]; then
+          echo "Starting development container..."
+          unset DOCKER_HUB_USERNAME
+        else
+          echo "Starting production container with tag: $IMAGE_TAG"
+        fi
+        
+        echo "Host listening on port $PORT"
+
+        docker compose -p $COMPOSE_PROJECT_NAME -f {{.COMPOSE_FILE}} up app
+
 
   app:stop:
     desc: "Stop the app container (usage: task app:stop -- test|prod [IMAGE_TAG])"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
-              IMAGE_TAG=dev docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml down app
-            else
-              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml down app
-            fi
-            ;;
-          "prod")
-            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
-              IMAGE_TAG=dev docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down app
-            else
-              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down app
-            fi
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+        
+        if [ $IMAGE_TAG = "dev" ]; then
+          echo "Stopping development container..."
+          unset DOCKER_HUB_USERNAME
+        else
+          echo "Stopping production container with tag: $IMAGE_TAG"
+        fi
+        
+        docker compose -p clickup-listener-{{.MODE}} -f {{.COMPOSE_FILE}} down app
 
   app:logs:
     desc: "Show app container logs (usage: task app:logs -- test|prod [IMAGE_TAG])"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
-              IMAGE_TAG=dev docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml logs -f --tail=100 app
-            else
-              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml logs -f --tail=100 app
-            fi
-            ;;
-          "prod")
-            if [ -z "{{index .CLI_ARGS 1}}" ] || [ "{{index .CLI_ARGS 1}}" = "dev" ]; then
-              IMAGE_TAG=dev docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 app
-            else
-              ACCOUNT_NAME=rksilvergreen IMAGE_TAG={{index .CLI_ARGS 1}} docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 app
-            fi
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+        
+        if [ "$IMAGE_TAG" = "dev" ]; then
+          echo "Showing logs for development container..."
+          unset DOCKER_HUB_USERNAME
+        else
+          echo "Showing logs for production container with tag: $IMAGE_TAG"
+        fi
+        
+        docker compose -p $COMPOSE_PROJECT_NAME -f {{.COMPOSE_FILE}} logs -f --tail=100 app
 
   tunnel:start:
     desc: "Open the Cloudflare tunnel using Docker Compose (usage: task tunnel:start -- test|prod)"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
+    env:
+      TUNNEL_TOKEN: { sh: 'case "{{.MODE}}" in "test") echo "$CF_TUNNEL_TEST_TOKEN";; "prod") echo "$CF_TUNNEL_PROD_TOKEN";; *) echo "";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            TUNNEL_ENV_FILE=../tunnel/tunnel.test.env docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml up tunnel
-            ;;
-          "prod")
-            TUNNEL_ENV_FILE=../tunnel/tunnel.prod.env docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml up tunnel
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+
+        echo "Starting tunnel for {{.MODE}} environment..."
+        docker compose -p $COMPOSE_PROJECT_NAME -f {{.COMPOSE_FILE}} up tunnel
   
   tunnel:stop:
     desc: "Stop the Cloudflare tunnel using Docker Compose (usage: task tunnel:stop -- test|prod)"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
+    env:
+      TUNNEL_TOKEN: { sh: 'case "{{.MODE}}" in "test") echo "$CF_TUNNEL_TEST_TOKEN";; "prod") echo "$CF_TUNNEL_PROD_TOKEN";; *) echo "";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml down tunnel
-            ;;
-          "prod")
-            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml down tunnel
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+        
+        echo "Stopping tunnel for {{.MODE}} environment..."
+        docker compose -p $COMPOSE_PROJECT_NAME -f {{.COMPOSE_FILE}} down tunnel
 
   tunnel:logs:
     desc: "Show tunnel container logs (usage: task tunnel:logs -- test|prod)"
     silent: true
+    vars:
+      MODE: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "test";; "prod") echo "prod";; *) echo "error";; esac' }
+    env:
+      TUNNEL_TOKEN: { sh: 'case "{{.MODE}}" in "test") echo "$CF_TUNNEL_TEST_TOKEN";; "prod") echo "$CF_TUNNEL_PROD_TOKEN";; *) echo "";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            docker compose -p clickup-listener-test -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
-            ;;
-          "prod")
-            docker compose -p clickup-listener-prod -f infrastructure/docker/compose.yaml logs -f --tail=100 tunnel
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+        
+        echo "Showing logs for tunnel in {{.MODE}} environment..."
+        docker compose -p $COMPOSE_PROJECT_NAME -f {{.COMPOSE_FILE}} logs -f --tail=100 tunnel
 
   domain:switch:
-    desc: "Switch {{.HOSTNAME}} to {local|remote}"
+    desc: "Switch {{.CF_PROD_HOSTNAME}} to {local|remote}"
     silent: true
-    dotenv: ['infrastructure/tunnel/cloudflare.env']
     vars:
       TARGET:     { sh: 'echo ${TARGET:-local}' }  # usage: task domain:switch TARGET=remote
       TTL:        "1"                             # 1 = auto (works when proxied)
       PROXIED:    "true"                          # true/false (boolean in JSON)
     preconditions:
-      - sh: '[ -n "$HOSTNAME" ] && [ -n "$CF_ZONE_ID" ] && [ -n "$CF_RECORD_ID" ] && [ -n "$CF_API_TOKEN" ] && [ -n "$TUNNEL_PROD_LOCAL" ] && [ -n "$TUNNEL_PROD_REMOTE" ]'
+      - sh: '[ -n "$CF_PROD_HOSTNAME" ] && [ -n "$CF_ZONE_ID" ] && [ -n "$CF_RECORD_ID" ] && [ -n "$CF_API_TOKEN" ] && [ -n "$CF_TUNNEL_PROD_LOCAL_ID" ] && [ -n "$CF_TUNNEL_PROD_REMOTE_ID" ]'
         msg: "Missing required variables in cloudflare.env file"
     cmds:
       - |
         if [ "{{.TARGET}}" = "local" ]; then
           curl -sX PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
             -H "Authorization: Bearer $CF_API_TOKEN" -H "Content-Type: application/json" \
-            --data "{\"type\":\"CNAME\",\"name\":\"$HOSTNAME\",\"content\":\"$TUNNEL_PROD_LOCAL\",\"proxied\":{{.PROXIED}},\"ttl\":{{.TTL}}}"
+            --data "{\"type\":\"CNAME\",\"name\":\"$CF_PROD_HOSTNAME\",\"content\":\"$CF_TUNNEL_PROD_LOCAL_ID\",\"proxied\":{{.PROXIED}},\"ttl\":{{.TTL}}}"
         elif [ "{{.TARGET}}" = "remote" ]; then
           curl -sX PUT "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$CF_RECORD_ID" \
             -H "Authorization: Bearer $CF_API_TOKEN" -H "Content-Type: application/json" \
-            --data "{\"type\":\"CNAME\",\"name\":\"$HOSTNAME\",\"content\":\"$TUNNEL_PROD_REMOTE\",\"proxied\":{{.PROXIED}},\"ttl\":{{.TTL}}}"
+            --data "{\"type\":\"CNAME\",\"name\":\"$CF_PROD_HOSTNAME\",\"content\":\"$CF_TUNNEL_PROD_REMOTE_ID\",\"proxied\":{{.PROXIED}},\"ttl\":{{.TTL}}}"
         else
           echo "Usage: task domain:switch TARGET={local|remote}"; exit 1
         fi
@@ -190,23 +230,17 @@ tasks:
   webhooks:activate:
     desc: "Activate ClickUp webhooks for the specified environment (usage: task webhooks:activate -- test|prod)"
     silent: true
-    dotenv: ['infrastructure/clickup.env']
+    vars:
+    env:
+      WEBHOOK_IDS: { sh: 'ARG="{{.CLI_ARGS}}"; MODE=${ARG%% *}; case "$MODE" in "test"|"") echo "$CLICKUP_WEBHOOK_IDS_TEST";; "prod") echo "$CLICKUP_WEBHOOK_IDS_PROD";; *) echo "";; esac' }
     cmds:
       - |
-        case "{{.CLI_ARGS}}" in
-          "test"|"")
-            echo "Activating webhooks for TEST environment..."
-            WEBHOOK_IDS="$WEBHOOK_IDS_TEST"
-            ;;
-          "prod")
-            echo "Activating webhooks for PROD environment..."
-            WEBHOOK_IDS="$WEBHOOK_IDS_PROD"
-            ;;
-          *)
-            echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
-            exit 1
-            ;;
-        esac
+        if [ "{{.MODE}}" = "error" ]; then
+          echo "Error: Invalid argument '{{.CLI_ARGS}}'. Use 'test' or 'prod'"
+          exit 1
+        fi
+        
+        echo "Activating webhooks for {{.MODE}} environment..."
         
         # Process webhook IDs - handle both single and comma-separated values
         if [ -n "$WEBHOOK_IDS" ]; then
@@ -223,7 +257,7 @@ tasks:
               echo "Activating webhook ID: $WEBHOOK_ID"
               # Update webhook status to active
               curl -X PUT "https://api.clickup.com/api/v2/webhook/$WEBHOOK_ID" \
-                -H "Authorization: $API_TOKEN" \
+                -H "Authorization: $CLICKUP_API_TOKEN" \
                 -H "Content-Type: application/json" \
                 -d '{"status": "active"}' \
                 -w "\nHTTP Status: %{http_code}\n"
