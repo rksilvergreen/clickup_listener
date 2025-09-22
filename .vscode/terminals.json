@@ -7,22 +7,26 @@
         {
             "name": " Tunnel (test)",
             "icon": "arrow-swap",
-            "color": "terminal.ansiYellow"
+            "color": "terminal.ansiYellow",
+            "cwd": "./run/test"
         },
         {
             "name": " App (test)",
             "icon": "play",
-            "color": "terminal.ansiYellow"
+            "color": "terminal.ansiYellow",
+            "cwd": "./run/test"
         },
         {
             "name": " Tunnel (prod)",
             "icon": "arrow-swap",
-            "color": "terminal.ansiGreen"
+            "color": "terminal.ansiGreen",
+            "cwd": "./run/prod"
         },
         {
             "name": " App (prod)",
             "icon": "play",
-            "color": "terminal.ansiGreen"
+            "color": "terminal.ansiGreen",
+            "cwd": "./run/prod"
         }
     ]
 }

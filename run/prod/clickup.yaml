@@ -1,0 +1,33 @@
+
+token: "pk_182584443_C89L86TIKSVYT0G68I61N3FFCXHXFX3I"
+webhooks:
+  endpoint_base_url: "http://automation-prod.ronbal.net"
+  endpoint_route: "/webhooks/clickup"
+  list: [
+    {
+      id: "dd71ab36-5a7c-43fa-9db0-c5ed1ec9a4d0",
+      secret: "YAIOKHVWDT4ARIGPJKLV72I04U60F65KPBSL8SV4XQZR3SSFQ1CXK0RI8EF25HVC"
+    },
+    {
+      id: "5c7a96df-a80c-465c-a577-e0334bc761bb",
+      secret: "OHTZ5M85TU5P5EHPR80Q18KNK3564KX3M8W8GGJLRD8U203QUKP3WPAIYPIGCJJ4"
+    },
+    {
+      id: "41331854-d1d0-48b2-9ab6-b590abdcaa69",
+      secret: "SMZOKEGXFN8AK3B30F76TXGJ8YAJAHVCT0ETPM11RFNA7AGK8PNF2QJYUO2R9JQ5"
+    }
+  ]
+workspace:
+  id: "90181045003"
+  task_type_ids:
+    event: "1011"
+  list_ids:
+    shopping: "901810374798"
+  custom_field_ids:
+    start_time: "ea56a6af-6e6d-4742-b792-02ca01350dad"
+    end_time: "94e29fad-661c-4f24-ba1e-61618be81540"
+    relevance_num: "ba8bc4bb-2411-4056-b2af-97602a749f40"
+    relevance_unit: "63cd786f-4476-46a2-a909-580d1c3e858f"
+    relevance_date: "148cec0b-93db-4477-ae8c-d14c2326984d"
+  tag_names:
+    purchase: "purchase" 

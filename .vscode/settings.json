@@ -7,13 +7,45 @@
     },
     "material-icon-theme.folders.customClones": [
         {
-            "name": "runtime",
+            "name": "run",
             "base": "ci",
-            "color": "purple-300",
+            "color": "#5ea060",
             "folderNames": [
-                "app/runtime"
+                "run"
             ],
             "saturation": 0.5,
+        },
+        {
+            "name": "prod",
+            "base": "client",
+            "color": "#5ea060",
+            "folderNames": [
+                "run/prod"
+            ],
+        },
+        {
+            "name": "test",
+            "base": "test",
+            "color": "#5ea060",
+            "folderNames": [
+                "run/test"
+            ],
+        },
+        {
+            "name": "infrastructure",
+            "base": "config",
+            "color": "#b2a669",
+            "folderNames": [
+                "infrastructure"
+            ],
+        },
+        {
+            "name": "clickup",
+            "base": "base",
+            "color": "#a698bf",
+            "folderNames": [
+                "infrastructure/clickup"
+            ],
         }
     ],
     "material-icon-theme.files.customClones": [

@@ -1,0 +1,17 @@
+services:
+  app:
+    image: ${DOCKER_HUB_USERNAME:+${DOCKER_HUB_USERNAME}/}clickup-listener:${IMAGE_TAG:-dev}
+    environment:
+      - PORT=8080
+      - CLICKUP_ENV_FILE=/runtime/env/clickup.yaml
+    volumes:
+      - ./clickup.yaml:/runtime/env/clickup.yaml:ro
+    ports:
+      - "${PORT}:8080"
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}

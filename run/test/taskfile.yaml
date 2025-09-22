@@ -1,0 +1,80 @@
+version: '3'
+
+vars:
+  COMPOSE_FILE: "compose.yaml"
+  COMPOSE_PROJECT_NAME: "clickup-listener-test"
+
+env:
+  IMAGE_TAG: { sh: 'ARG="{{.CLI_ARGS}}"; TAG=${ARG%% *}; echo ${TAG:-dev}' }
+
+dotenv: ['.env']
+
+tasks:
+
+  app:start:
+      desc: "Start the app container (usage: task app:start -- IMAGE_TAG)"
+      silent: true
+      cmds:
+        - |
+          if [ "$IMAGE_TAG" = "dev" ]; then
+            echo "Starting development container..."
+            export DOCKER_HUB_USERNAME=""
+          else
+            echo "Starting production container with tag: $IMAGE_TAG"
+          fi
+          
+          echo "Host listening on port $PORT"
+
+          docker compose -p {{.COMPOSE_PROJECT_NAME}} -f {{.COMPOSE_FILE}} up app
+
+  app:stop:
+      desc: "Stop the app container (usage: task app:stop -- IMAGE_TAG)"
+      silent: true
+      cmds:
+        - |
+          if [ "$IMAGE_TAG" = "dev" ]; then
+            echo "Stopping development container..."
+            export DOCKER_HUB_USERNAME=""
+          else
+            echo "Stopping production container with tag: $IMAGE_TAG"
+          fi
+          
+          docker compose -p {{.COMPOSE_PROJECT_NAME}} -f {{.COMPOSE_FILE}} down app
+
+  app:logs:
+      desc: "Show app container logs (usage: task app:logs -- IMAGE_TAG)"
+      silent: true
+      cmds:
+        - |
+          if [ "$IMAGE_TAG" = "dev" ]; then
+            echo "Showing logs for development container..."
+            export DOCKER_HUB_USERNAME=""
+          else
+            echo "Showing logs for production container with tag: $IMAGE_TAG"
+          fi
+          
+          docker compose -p {{.COMPOSE_PROJECT_NAME}} -f {{.COMPOSE_FILE}} logs -f --tail=100 app
+
+  tunnel:start:
+      desc: "Open the Cloudflare tunnel using Docker Compose (usage: task tunnel:start)"
+      silent: true
+      cmds:
+        - |
+          echo "Starting tunnel for production environment..."
+          docker compose -p {{.COMPOSE_PROJECT_NAME}} -f {{.COMPOSE_FILE}} up tunnel
+
+  tunnel:stop:
+      desc: "Stop the Cloudflare tunnel using Docker Compose (usage: task tunnel:stop)"
+      silent: true
+      cmds:
+        - |
+          echo "Stopping tunnel for production environment..."
+          docker compose -p {{.COMPOSE_PROJECT_NAME}} -f {{.COMPOSE_FILE}} down tunnel
+
+  tunnel:logs:
+      desc: "Show tunnel container logs (usage: task tunnel:logs)"
+      silent: true
+      cmds:
+        - |
+          echo "Showing logs for tunnel in production environment..."
+          docker compose -p {{.COMPOSE_PROJECT_NAME}} -f {{.COMPOSE_FILE}} logs -f --tail=100 tunnel

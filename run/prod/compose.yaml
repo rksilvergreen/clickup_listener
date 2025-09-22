@@ -1,16 +1,13 @@
 services:
   app:
-    build:
-      context: ../../
-      dockerfile: infrastructure/docker/Dockerfile
     image: ${DOCKER_HUB_USERNAME:+${DOCKER_HUB_USERNAME}/}clickup-listener:${IMAGE_TAG:-dev}
     environment:
       - PORT=8080
       - CLICKUP_ENV_FILE=/runtime/env/clickup.yaml
     volumes:
-      - ${CLICKUP_ENV_FILE}:/runtime/env/clickup.yaml:ro
+      - ./clickup.yaml:/runtime/env/clickup.yaml:ro
     ports:
-      - "${PORT:-8082}:8080"
+      - "${PORT}:8080"
 
   tunnel:
     image: cloudflare/cloudflared:latest
