@@ -29,8 +29,8 @@ When the user says "deploy", always:
    - Ask user for the target version
    - Inform user of current version
 3. **Version validation**:
-   - Verify pubspec.yaml version matches requested version
-   - If not matching, update pubspec.yaml and wait for user approval
+   - Verify pubspec.yaml version and VERSION in main.dart matches requested version
+   - If not matching, update pubspec.yaml and VERSION in main.dart
 4. **Branch validation**:
    - Ensure NOT on main branch
    - Confirm on develop branch or offshoot of develop
