@@ -21,6 +21,28 @@ type: brief description
 - Any important notes for future developers
 ```
 
+## Deploy Rule
+When the user says "deploy", always:
+1. **Require version specification**: The command must include version in format "deploy X.Y.Z" (major.minor.patch)
+2. **If version not provided**: 
+   - Check current version in pubspec.yaml
+   - Ask user for the target version
+   - Inform user of current version
+3. **Version validation**:
+   - Verify pubspec.yaml version matches requested version
+   - If not matching, update pubspec.yaml and wait for user approval
+4. **Branch validation**:
+   - Ensure NOT on main branch
+   - Confirm on develop branch or offshoot of develop
+5. **Deployment workflow**:
+   - Commit and push current changes (If there is anything to commit)
+   - If on develop offshoot: merge to develop, push develop
+   - Merge develop to main, push main
+   - Tag main branch with version (vX.Y.Z format)
+   - Return to original branch
+
+This ensures controlled versioned deployments with proper branching strategy.
+
 ## Enum Format Rule
 When creating enums, always follow the format of RelevanceUnit:
 

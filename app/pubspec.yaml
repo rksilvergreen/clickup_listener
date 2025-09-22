@@ -1,5 +1,5 @@
 name: clickup_listener
-version: 0.0.2
+version: 1.0.1
 environment:
   sdk: '>=3.0.0 <4.0.0'
 dependencies:
