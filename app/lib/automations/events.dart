@@ -592,11 +592,34 @@ DateTime? calculateRelevanceDate(
 /// [taskId] - The ClickUp task ID
 /// [startTime] - The DateTime to set as the start time, or null to clear the field
 Future<void> setStartTime(String taskId, DateTime? startTime) async {
+  if (startTime == null) {
+    // Use DELETE endpoint to clear the field
+    try {
+      final response = await http.delete(
+        Uri.parse('${clickup.API_BASE_URL}/task/$taskId/field/${clickup.workspace.customFieldIds.startTime}'),
+        headers: {
+          'Authorization': clickup.token,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        stdout.writeln('[Events] Successfully cleared Start Time for task $taskId');
+      } else {
+        stderr.writeln(
+            '[Events] Failed to clear Start Time for task $taskId. Status: ${response.statusCode}, Response: ${response.body}');
+      }
+    } catch (e) {
+      stderr.writeln('[Events] Error clearing Start Time for task $taskId: $e');
+    }
+    return;
+  }
+
   try {
     // Prepare the request body
     final requestBody = {
       "value_options": {"time": true},
-      "value": startTime?.millisecondsSinceEpoch
+      "value": startTime.millisecondsSinceEpoch
     };
 
     // Make the API call to update the custom field
@@ -610,11 +633,7 @@ Future<void> setStartTime(String taskId, DateTime? startTime) async {
     );
 
     if (response.statusCode == 200) {
-      if (startTime != null) {
-        stdout.writeln('[Events] Successfully updated Start Time for task $taskId to $startTime');
-      } else {
-        stdout.writeln('[Events] Successfully cleared Start Time for task $taskId');
-      }
+      stdout.writeln('[Events] Successfully updated Start Time for task $taskId to $startTime');
     } else {
       stderr.writeln(
           '[Events] Failed to update Start Time for task $taskId. Status: ${response.statusCode}, Response: ${response.body}');
@@ -629,11 +648,34 @@ Future<void> setStartTime(String taskId, DateTime? startTime) async {
 /// [taskId] - The ClickUp task ID
 /// [endTime] - The DateTime to set as the end time, or null to clear the field
 Future<void> setEndTime(String taskId, DateTime? endTime) async {
+  if (endTime == null) {
+    // Use DELETE endpoint to clear the field
+    try {
+      final response = await http.delete(
+        Uri.parse('${clickup.API_BASE_URL}/task/$taskId/field/${clickup.workspace.customFieldIds.endTime}'),
+        headers: {
+          'Authorization': clickup.token,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        stdout.writeln('[Events] Successfully cleared End Time for task $taskId');
+      } else {
+        stderr.writeln(
+            '[Events] Failed to clear End Time for task $taskId. Status: ${response.statusCode}, Response: ${response.body}');
+      }
+    } catch (e) {
+      stderr.writeln('[Events] Error clearing End Time for task $taskId: $e');
+    }
+    return;
+  }
+
   try {
     // Prepare the request body
     final requestBody = {
       "value_options": {"time": true},
-      "value": endTime?.millisecondsSinceEpoch
+      "value": endTime.millisecondsSinceEpoch
     };
 
     // Make the API call to update the custom field
@@ -647,11 +689,7 @@ Future<void> setEndTime(String taskId, DateTime? endTime) async {
     );
 
     if (response.statusCode == 200) {
-      if (endTime != null) {
-        stdout.writeln('[Events] Successfully updated End Time for task $taskId to $endTime');
-      } else {
-        stdout.writeln('[Events] Successfully cleared End Time for task $taskId');
-      }
+      stdout.writeln('[Events] Successfully updated End Time for task $taskId to $endTime');
     } else {
       stderr.writeln(
           '[Events] Failed to update End Time for task $taskId. Status: ${response.statusCode}, Response: ${response.body}');
@@ -666,11 +704,34 @@ Future<void> setEndTime(String taskId, DateTime? endTime) async {
 /// [taskId] - The ClickUp task ID
 /// [relevanceDate] - The DateTime to set as the relevance date, or null to clear the field
 Future<void> setRelevanceDate(String taskId, DateTime? relevanceDate) async {
+  if (relevanceDate == null) {
+    // Use DELETE endpoint to clear the field
+    try {
+      final response = await http.delete(
+        Uri.parse('${clickup.API_BASE_URL}/task/$taskId/field/${clickup.workspace.customFieldIds.relevanceDate}'),
+        headers: {
+          'Authorization': clickup.token,
+          'Accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        stdout.writeln('[Events] Successfully cleared Relevance Date for task $taskId');
+      } else {
+        stderr.writeln(
+            '[Events] Failed to clear Relevance Date for task $taskId. Status: ${response.statusCode}, Response: ${response.body}');
+      }
+    } catch (e) {
+      stderr.writeln('[Events] Error clearing Relevance Date for task $taskId: $e');
+    }
+    return;
+  }
+
   try {
     // Prepare the request body
     final requestBody = {
       "value_options": {"time": true},
-      "value": relevanceDate?.millisecondsSinceEpoch
+      "value": relevanceDate.millisecondsSinceEpoch
     };
 
     // Make the API call to update the custom field
@@ -684,11 +745,7 @@ Future<void> setRelevanceDate(String taskId, DateTime? relevanceDate) async {
     );
 
     if (response.statusCode == 200) {
-      if (relevanceDate != null) {
-        stdout.writeln('[Events] Successfully updated Relevance Date for task $taskId to $relevanceDate');
-      } else {
-        stdout.writeln('[Events] Successfully cleared Relevance Date for task $taskId');
-      }
+      stdout.writeln('[Events] Successfully updated Relevance Date for task $taskId to $relevanceDate');
     } else {
       stderr.writeln(
           '[Events] Failed to update Relevance Date for task $taskId. Status: ${response.statusCode}, Response: ${response.body}');
