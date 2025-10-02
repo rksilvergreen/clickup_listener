@@ -7,9 +7,12 @@ import 'env/clickup.dart' as clickup;
 import 'automations/events.dart' as events;
 import 'automations/purchase_tags.dart' as purchaseTags;
 import 'automations/task_dates.dart' as taskDates;
+import 'automations/records.dart' as records;
 
 class ClickupRequestHandler {
-  static Future<Response> Function(Request req) get requestHandler => ClickupRequestHandler()._handleRequest;
+  static Future<Response> Function(Request req) get requestHandler => ClickupRequestHandler._()._handleRequest;
+
+  ClickupRequestHandler._();
 
   Future<Response> _handleRequest(Request req) async {
     final raw = await req.readAsString();
@@ -152,6 +155,9 @@ class ClickupRequestHandler {
         if (events.isRelevantEventCreate(taskDetails)) {
           stdout.writeln('[ClickUp] Detected relevant event task creation, forwarding to events handler');
           await events.onEventCreated(taskDetails);
+        } else if (records.isRelevantRecordCreate(taskDetails)) {
+          stdout.writeln('[ClickUp] Detected relevant record task creation, forwarding to records handler');
+          await records.onRecordCreated(taskDetails);
         } else if (taskDates.isRelevantDatesCreate(taskDetails)) {
           stdout.writeln('[ClickUp] Detected relevant dates task creation, forwarding to task dates handler');
           await taskDates.onTaskCreated(taskDetails);

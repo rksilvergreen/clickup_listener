@@ -11,6 +11,17 @@ dotenv: ['.env']
 
 tasks:
 
+  app:run:
+    desc: "Run the Dart app on host (usage: task app:run)"
+    silent: true
+    env:
+      CLICKUP_ENV_FILE: "run/prod/clickup.yaml"
+      PORT: "8080"
+    cmds:
+      - |
+        echo "Running app in prod mode..."
+        dart run ../../app/lib/main.dart
+
   app:start:
       desc: "Start the app container (usage: task app:start -- IMAGE_TAG)"
       silent: true

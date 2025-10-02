@@ -13,6 +13,7 @@ workspace:
   id: "90181045003"
   task_type_ids:
     event: "1011"
+    record: "1013"
   list_ids:
     shopping: "901811386514"
   custom_field_ids:
@@ -21,5 +22,6 @@ workspace:
     relevance_num: "ba8bc4bb-2411-4056-b2af-97602a749f40"
     relevance_unit: "63cd786f-4476-46a2-a909-580d1c3e858f"
     relevance_date: "148cec0b-93db-4477-ae8c-d14c2326984d"
+    timestamp: "a7905c6f-3ab1-40ae-8a29-6317ccddd839"
   tag_names:
     purchase: "purchase" 
