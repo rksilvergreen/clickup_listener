@@ -5,7 +5,7 @@ import 'server.dart';
 import 'webhooks.dart';
 
 // -------- Constants --------
-const String VERSION = '1.1.0';
+const String VERSION = '1.2.0';
 
 Future<void> main() async {
   // Print application version

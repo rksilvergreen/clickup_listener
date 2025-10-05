@@ -8,6 +8,7 @@ import 'automations/events.dart' as events;
 import 'automations/purchase_tags.dart' as purchaseTags;
 import 'automations/task_dates.dart' as taskDates;
 import 'automations/records.dart' as records;
+import 'automations/meetings.dart' as meetings;
 
 class ClickupRequestHandler {
   static Future<Response> Function(Request req) get requestHandler => ClickupRequestHandler._()._handleRequest;
@@ -152,16 +153,27 @@ class ClickupRequestHandler {
 
         // Check if this is an event task and handle it accordingly
         // Note: Automation flags removed - automations will run by default
-        if (events.isRelevantEventCreate(taskDetails)) {
+        bool automationTriggered = false;
+
+        if (events.isRelevant_EventCreate(taskDetails)) {
           stdout.writeln('[ClickUp] Detected relevant event task creation, forwarding to events handler');
           await events.onEventCreated(taskDetails);
-        } else if (records.isRelevantRecordCreate(taskDetails)) {
+          automationTriggered = true;
+        }
+
+        if (records.isRelevant_RecordCreate(taskDetails)) {
           stdout.writeln('[ClickUp] Detected relevant record task creation, forwarding to records handler');
           await records.onRecordCreated(taskDetails);
-        } else if (taskDates.isRelevantDatesCreate(taskDetails)) {
+          automationTriggered = true;
+        }
+
+        if (taskDates.isRelevant_DatesCreate(taskDetails)) {
           stdout.writeln('[ClickUp] Detected relevant dates task creation, forwarding to task dates handler');
           await taskDates.onTaskCreated(taskDetails);
-        } else {
+          automationTriggered = true;
+        }
+
+        if (!automationTriggered) {
           stdout.writeln('[ClickUp] Task creation - no automations triggered');
         }
       }
@@ -179,13 +191,33 @@ class ClickupRequestHandler {
 
         // Check if this is an event task and handle it accordingly
         // Note: Automation flags removed - automations will run by default
-        if (events.isRelevantEventUpdate(taskDetails, body)) {
+        bool automationTriggered = false;
+
+        if (events.isRelevant_EventUpdate(taskDetails, body)) {
           stdout.writeln('[ClickUp] Detected event task, forwarding to events handler');
           await events.onEventUpdated(taskDetails, body);
-        } else if (taskDates.isRelevantDatesUpdate(body)) {
+          automationTriggered = true;
+        }
+
+        if (meetings.isRelevant_MeetingUpdate_DueDate(taskDetails, body)) {
+          stdout.writeln('[ClickUp] Detected meeting due date update, forwarding to meetings handler');
+          await meetings.onMeetingUpdated_DueDate(taskDetails, body);
+          automationTriggered = true;
+        }
+
+        if (meetings.isRelevant_MeetingUpdate_PreMeetingTasks(taskDetails, body)) {
+          stdout.writeln('[ClickUp] Detected meeting pre-meeting tasks update, forwarding to meetings handler');
+          await meetings.onMeetingUpdated_PreMeetingTasks(taskDetails, body);
+          automationTriggered = true;
+        }
+
+        if (taskDates.isRelevant_DatesUpdate(taskDetails, body)) {
           stdout.writeln('[ClickUp] Detected relevant dates task update, forwarding to task dates handler');
           await taskDates.onTaskUpdated(taskDetails, body);
-        } else {
+          automationTriggered = true;
+        }
+
+        if (!automationTriggered) {
           stdout.writeln('[ClickUp] Task update - no automations triggered');
         }
       }
@@ -218,7 +250,7 @@ class ClickupRequestHandler {
             if (after != null && after is List && after.isNotEmpty) {
               final tagDetails = after[0] as Map<String, dynamic>;
               // Note: Automation flags removed - automations will run by default
-              if (purchaseTags.isRelevantPurchaseTagAdded(tagDetails)) {
+              if (purchaseTags.isRelevant_PurchaseTagAdded(tagDetails)) {
                 await purchaseTags.onPurchaseTagAdded(taskDetails, tagDetails);
               }
             }
@@ -228,7 +260,7 @@ class ClickupRequestHandler {
             if (before != null && before is List && before.isNotEmpty) {
               final tagDetails = before[0] as Map<String, dynamic>;
               // Note: Automation flags removed - automations will run by default
-              if (purchaseTags.isRelevantPurchaseTagRemoved(tagDetails)) {
+              if (purchaseTags.isRelevant_PurchaseTagRemoved(tagDetails)) {
                 await purchaseTags.onPurchaseTagRemoved(taskDetails, tagDetails);
               }
             }

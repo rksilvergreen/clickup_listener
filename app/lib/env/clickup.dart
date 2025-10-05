@@ -83,15 +83,24 @@ class WorkspaceConfig {
 
 /// Task Type IDs Configuration
 class TaskTypeIds {
+  final String task;
   final String event;
   final String record;
+  final String meeting;
 
-  TaskTypeIds({required this.event, required this.record});
+  TaskTypeIds({
+    required this.task,
+    required this.event,
+    required this.record,
+    required this.meeting,
+  });
 
   factory TaskTypeIds.fromMap(Map<String, dynamic> map) {
     return TaskTypeIds(
+      task: map["task"] as String,
       event: map["event"] as String,
       record: map["record"] as String,
+      meeting: map["meeting"] as String,
     );
   }
 }
@@ -117,6 +126,7 @@ class CustomFieldIds {
   final String relevanceUnit;
   final String relevanceDate;
   final String timestamp;
+  final String preMeetingTasks;
 
   CustomFieldIds({
     required this.startTime,
@@ -125,6 +135,7 @@ class CustomFieldIds {
     required this.relevanceUnit,
     required this.relevanceDate,
     required this.timestamp,
+    required this.preMeetingTasks,
   });
 
   factory CustomFieldIds.fromMap(Map<String, dynamic> map) {
@@ -135,6 +146,7 @@ class CustomFieldIds {
       relevanceUnit: map["relevance_unit"] as String,
       relevanceDate: map["relevance_date"] as String,
       timestamp: map["timestamp"] as String,
+      preMeetingTasks: map["pre_meeting_tasks"] as String,
     );
   }
 }

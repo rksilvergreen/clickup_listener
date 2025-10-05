@@ -20,6 +20,8 @@ webhooks:
 workspace:
   id: "90181045003"
   task_type_ids:
+    task: "0"
+    meeting: "4"
     event: "1011"
     record: "1013"
   list_ids:
@@ -31,5 +33,6 @@ workspace:
     relevance_unit: "63cd786f-4476-46a2-a909-580d1c3e858f"
     relevance_date: "148cec0b-93db-4477-ae8c-d14c2326984d"
     timestamp: "a7905c6f-3ab1-40ae-8a29-6317ccddd839"
+    pre_meeting_tasks: "9a5dcace-01e1-4505-a3d0-96a9b8c9ada9"
   tag_names:
     purchase: "purchase" 

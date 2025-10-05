@@ -17,7 +17,7 @@ bool isRecordTask(Map<String, dynamic> taskDetails) {
 ///
 /// [taskDetails] - Complete task details from ClickUp API
 /// Returns true if the task is a record and should have timestamp set
-bool isRelevantRecordCreate(Map<String, dynamic> taskDetails) {
+bool isRelevant_RecordCreate(Map<String, dynamic> taskDetails) {
   // First check if this is a record task
   if (!isRecordTask(taskDetails)) {
     return false;

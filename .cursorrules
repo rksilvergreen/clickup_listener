@@ -79,4 +79,23 @@ This format provides:
 - Static `fromString()` method for parsing string values
 - `toDisplayString()` method for user-friendly display
 - `toString()` method for API/technical usage
-- Consistent mapping between enum values and string representations 
+- Consistent mapping between enum values and string representations
+
+## ClickUp Structure Update Rule
+When the user says "update the clickup structure" or similar, always:
+1. **Structure Validation**:
+   - Read and compare `run/prod/clickup.yaml` and `run/test/clickup.yaml`
+   - Verify both files have identical structure (same keys and nested keys)
+   - If structures differ, alert the user with specific differences found
+2. **Code Synchronization**:
+   - If structures match, analyze the YAML structure
+   - Check if `app/lib/env/clickup.dart` classes need updates to match the structure
+   - Update the Dart classes to reflect any new fields, nested objects, or changes
+   - Ensure proper type definitions and null safety
+3. **Validation Process**:
+   - Compare key hierarchies between files
+   - Check for missing or extra fields in either environment
+   - Verify data types and nesting levels match
+   - Report any structural inconsistencies before proceeding with code updates
+
+This ensures ClickUp configuration consistency across environments and keeps Dart models synchronized.

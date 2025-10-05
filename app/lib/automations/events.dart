@@ -20,7 +20,7 @@ bool isEventTask(Map<String, dynamic> taskDetails) {
 ///
 /// [taskDetails] - Complete task details from ClickUp API
 /// Returns true if the task is an event and has start date, due date, relevance num, or relevance unit set
-bool isRelevantEventCreate(Map<String, dynamic> taskDetails) {
+bool isRelevant_EventCreate(Map<String, dynamic> taskDetails) {
   // First check if this is an event task
   if (!isEventTask(taskDetails)) {
     return false;
@@ -53,7 +53,7 @@ bool isRelevantEventCreate(Map<String, dynamic> taskDetails) {
 /// [taskDetails] - Complete task details from ClickUp API
 /// [webhookBody] - Original webhook payload for context
 /// Returns true if the update involves changes to Start date, Due date, Relevance num, or Relevance Unit
-bool isRelevantEventUpdate(Map<String, dynamic> taskDetails, Map<String, dynamic> webhookBody) {
+bool isRelevant_EventUpdate(Map<String, dynamic> taskDetails, Map<String, dynamic> webhookBody) {
   // First check if this is an event task
   if (!isEventTask(taskDetails)) {
     return false;

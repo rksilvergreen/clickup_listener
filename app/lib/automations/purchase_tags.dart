@@ -6,7 +6,7 @@ import '../env/clickup.dart' as clickup;
 ///
 /// [tagDetails] - Details of the tag that was added
 /// Returns true if the tag name matches the purchase tag name
-bool isRelevantPurchaseTagAdded(Map<String, dynamic> tagDetails) {
+bool isRelevant_PurchaseTagAdded(Map<String, dynamic> tagDetails) {
   final tagName = tagDetails['name'] as String?;
   return tagName != null && tagName == clickup.workspace.tagNames.purchase;
 }
@@ -15,7 +15,7 @@ bool isRelevantPurchaseTagAdded(Map<String, dynamic> tagDetails) {
 ///
 /// [tagDetails] - Details of the tag that was removed
 /// Returns true if the tag name matches the purchase tag name
-bool isRelevantPurchaseTagRemoved(Map<String, dynamic> tagDetails) {
+bool isRelevant_PurchaseTagRemoved(Map<String, dynamic> tagDetails) {
   final tagName = tagDetails['name'] as String?;
   return tagName != null && tagName == clickup.workspace.tagNames.purchase;
 }

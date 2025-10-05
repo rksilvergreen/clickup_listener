@@ -37,15 +37,32 @@ enum TaskStatus {
 ///
 /// [taskDetails] - Complete task details from ClickUp API
 /// Returns true if the task has start date or due date set
-bool isRelevantDatesCreate(Map<String, dynamic> taskDetails) {
+bool isRelevant_DatesCreate(Map<String, dynamic> taskDetails) {
+  final customItemId = taskDetails['custom_item_id']?.toString();
+  final isTaskType = customItemId == clickup.workspace.taskTypeIds.task;
+  final isMeetingType = customItemId == clickup.workspace.taskTypeIds.meeting;
+
+  if (!isTaskType && !isMeetingType) {
+    return false;
+  }
   return true;
 }
 
 /// Checks if a task update involves changes to relevant date fields
 ///
 /// [webhookBody] - Original webhook payload for context
-/// Returns true if the update involves changes to start date or due date
-bool isRelevantDatesUpdate(Map<String, dynamic> webhookBody) {
+/// [taskDetails] - Complete task details from ClickUp API
+/// Returns true if the update involves changes to start date or due date and task type is task or meeting
+bool isRelevant_DatesUpdate(Map<String, dynamic> taskDetails, Map<String, dynamic> webhookBody) {
+  // First check if this is a task or meeting type
+  final customItemId = taskDetails['custom_item_id']?.toString();
+  final isTaskType = customItemId == clickup.workspace.taskTypeIds.task;
+  final isMeetingType = customItemId == clickup.workspace.taskTypeIds.meeting;
+
+  if (!isTaskType && !isMeetingType) {
+    return false;
+  }
+
   // Check if there are any history items
   final historyItems = webhookBody['history_items'] as List? ?? [];
   if (historyItems.isEmpty) {
